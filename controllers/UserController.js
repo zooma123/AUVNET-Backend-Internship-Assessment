@@ -7,7 +7,7 @@ exports.deleteUsersAndAdmins = async(req,res) =>{
 await User.findByIdAndDelete(req.params.id) ;
 return res.status(200).json({
 
-"message " : "You Have Successfully Delete it"
+"message " : "success"
 
 })
 
@@ -20,7 +20,7 @@ admins = await User.find({role : "admin"  }).select('Username Email role ');
 
 return res.status(200).json({
 
-    "message " : "Here The Data" , 
+    "message " : "success" , 
     "data" : admins
     
     })
@@ -34,7 +34,7 @@ exports.ViewUsers = async(req,res) => {
     
     return res.status(200).json({
     
-        "message " : "Here The Data" , 
+        "message " : "success" , 
         "data" : Users
         
         })
