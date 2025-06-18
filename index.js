@@ -7,7 +7,9 @@ const  dotenv = require ('dotenv') ;
 const cookieParser = require('cookie-parser')
 const auth = require ("./routes/auth.js");
 const user = require ("./routes/user.js");
-
+const category = require("./routes/category.js")
+const subcategory = require("./routes/subcategory.js")
+const subsubcategory= require("./routes/subsubcategory.js")
 app.use(cors());
 dotenv.config();
 const { createServer } = require('node:http');
@@ -19,6 +21,13 @@ app.use(express.urlencoded({extended :true}))
 
 app.use("/auth" , auth);
 app.use("/user" , user);
+app.use("/category" ,category )
+app.use("/subcategory" ,subcategory )
+app.use("/subsubcategory" ,subsubcategory )
+
+
+
+
 
 const port = process.env.PORT;
 server.listen(port, async () =>{
