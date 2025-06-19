@@ -5,9 +5,9 @@ const {restrictTo , protect} = require ('../controllers/AuthController')
  
 
 
-router.get('/AllSubCategories' , GetAllSubCategories )
-router.post('/AddSubCategory' ,  AddSubCategory)
- router.put('/UpdateSubCategory/:id',  UpdateSubCategory )
- router.delete('/DeleteSubCategory/:id' , deleteSubCategory )
+router.get('/AllSubCategories' ,protect , GetAllSubCategories )
+router.post('/AddSubCategory' ,  protect , restrictTo('admin') ,AddSubCategory)
+ router.put('/UpdateSubCategory/:id', protect , restrictTo('admin') ,UpdateSubCategory )
+ router.delete('/DeleteSubCategory/:id' , protect , restrictTo('admin') ,deleteSubCategory )
 
 module.exports = router;

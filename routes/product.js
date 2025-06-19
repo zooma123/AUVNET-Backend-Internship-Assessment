@@ -6,9 +6,9 @@ const upload = require("../utils/multer.js");
 
 
 
-router.get('/AllProducts' , GetAllProducts )
-router.post('/AddProduct',  upload.single("image")  ,  CreateProduct)
- router.put('/UpdateProduct/:id',  UpdateProduct )
- router.delete('/DeleteProduct/:id' , DeleteProduct )
+router.get('/AllProducts' , protect ,GetAllProducts )
+router.post('/AddProduct', protect , restrictTo('admin') , upload.single("image")  ,  CreateProduct)
+ router.put('/UpdateProduct/:id', protect , restrictTo('admin') , UpdateProduct )
+ router.delete('/DeleteProduct/:id' ,protect , restrictTo('admin') ,DeleteProduct )
 
 module.exports = router;

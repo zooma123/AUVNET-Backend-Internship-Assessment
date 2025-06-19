@@ -25,17 +25,14 @@ exports.AddSubCategory = async (req,res)=>{
 
 // Here I will Prompt Admin To Add SubCategory By Category Name
 
-        const  {NameOfCategory , Name} =  await  req.body
-        if(!Name | !NameOfCategory){
+        const  {category_id , Name} =  await  req.body
+        if(!Name | !category_id){
 
             return res.status(404).json({
-                "message" : "Please Provide The Name"
+                "message" : "Please Provide The Name or id"
             })
         }
         
-const category = await Category.findOne({ "Name" :NameOfCategory })
-const category_id = category._id
-console.log(category_id)
 
   await SubCategory.create({ category_id , Name});
 
