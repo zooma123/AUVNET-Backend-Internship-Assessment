@@ -11,7 +11,7 @@ const category = require("./routes/category.js")
 const subcategory = require("./routes/subcategory.js")
 const subsubcategory= require("./routes/subsubcategory.js")
 const product = require("./routes/product.js")
-
+const wishlist = require("./routes/wishlist.js")
 
 
 app.use(cors());
@@ -29,6 +29,7 @@ app.use("/category" ,category )
 app.use("/subcategory" ,subcategory )
 app.use("/subsubcategory" ,subsubcategory )
 app.use("/product" ,product )
+app.use("/wishlist" ,wishlist )
 
 
 

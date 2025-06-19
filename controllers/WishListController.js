@@ -9,7 +9,7 @@ try{
     const userid = req.user._id
     const wishlist = await  WishList.findOne({"user_id" : userid  });
     if (!wishlist) {
-        return res.status(404).json({ message: 'Wishlist not found' });
+        return res.status(404).json({ message: 'your Wishlist is empty' });
       }
       
     const products =  await wishlist.populate("product_id" );
@@ -83,7 +83,7 @@ res.status(404).json({
         try {
             const userid = req.user._id
             const wishlist = await WishList.findOne({"user_id" : userid  });
-      const productId =  req.body
+      const productId =  req.body.productId
 
       if (!wishlist) {
         return res.status(404).json({ message: "Wishlist not found" });
