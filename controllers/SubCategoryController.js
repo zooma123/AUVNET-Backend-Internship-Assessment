@@ -5,7 +5,7 @@ exports.GetAllSubCategories = async (req,res)=>{
 try{
  const SubCategories = await SubCategory.find().populate('category_id' , 'Name').select('Name');
 return res.status(200).json({
-"message" : "HERE The Data" ,
+"message" : "success" ,
 "Data" : SubCategories
 
 })}catch(err){
@@ -40,7 +40,7 @@ console.log(category_id)
   await SubCategory.create({ category_id , Name});
 
      return res.status(200).json({
-     "message" : "You Successfully Add  The Sub Category" ,
+     "message" : "success" ,
     
      })
 }
@@ -70,7 +70,7 @@ catch(err){
           await SubCategory.findByIdAndDelete(subCategoryId);
       
           return res.status(200).json({
-            message: "SubCategory and its Sub-Sub-Categories deleted successfully"
+            message: "success"
           });
       
         } catch (err) {
@@ -97,7 +97,7 @@ try {
       );
 
 return res.status(200).json({
-message : "You Successfully Ubdate The Sub Category"
+message : "success"
 
 })
 

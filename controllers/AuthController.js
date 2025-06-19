@@ -39,7 +39,7 @@ exports.register =  async (req,res) =>{
     const newUser = await User.create({Username,Email,password : hashedPassword , role })
     createSendToken(newUser , 201 , res);
   return res.status(200).json({
-"message" : "You have Successfully Make The Acount"
+"message" : "success"
 
   })
    

@@ -48,7 +48,7 @@ const  subCategory_id = SubCate._id
   await SubSubCategory.create({ subCategory_id , Name});
 
      return res.status(200).json({
-     "message" : "sucess" ,
+     "message" : "success" ,
     
      })
 }
@@ -71,7 +71,7 @@ catch(err){
           await SubSubCategory.findByIdAndDelete(SubSubCategoryId);
       
           return res.status(200).json({
-            message: " sucess"
+            message: " success"
           });
       
         } catch (err) {

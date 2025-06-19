@@ -29,7 +29,7 @@ return res.status(200).json({
 }
 
 exports.ViewUsers = async(req,res) => {
-    Users = await User.find({role : "user"  }).select('Username Email role ');
+   const  Users = await User.find({role : "user"  }).select('Username Email role ');
     
     
     return res.status(200).json({

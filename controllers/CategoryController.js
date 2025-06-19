@@ -6,7 +6,7 @@ exports.GetAllCategories = async (req,res)=>{
 try{
  const Categories = await Category.find();
 return res.status(200).json({
-"message" : "HERE The Data" ,
+"message" : "success" ,
 "Data" : Categories
 
 })}catch(err){
@@ -34,7 +34,7 @@ exports.AddCategory = async (req,res)=>{
    const category = await Category.create({Name});
 
     return res.status(200).json({
-    "message" : "You Successfully Add The Category" ,
+    "message" : "success" ,
     
     })}catch(err){
     
@@ -67,7 +67,7 @@ try{
 
  DeletedCategory = await Category.findByIdAndDelete(category);
  return res.status(200).json({
-     "message" : "You Successfully Deleted The Category The Category" ,
+     "message" : "success" ,
      
      })
 }catch(err){
@@ -98,7 +98,7 @@ try {
       );
 
 return res.status(200).json({
-message : "You Successfully Ubdate The Category"
+message : "success"
 
 })
 
