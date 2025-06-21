@@ -74,7 +74,12 @@ exports.updateAdmin = async (req, res) => {
   };
 
 exports.ViewAdmins = async(req,res) => {
-admins = await User.find({role : "admin"  }).select('Username Email role ');
+
+    const page = parseInt(req.query.page) || 1;       // Default to page 1
+    const limit = parseInt(req.query.limit) || 10;    // Default to 10 items per page
+    const skip = (page - 1) * limit;
+
+admins = await User.find({role : "admin"  }).select('Username Email role ').skip(skip).limit(limit);
 
 
 return res.status(200).json({
@@ -88,7 +93,14 @@ return res.status(200).json({
 }
 
 exports.ViewUsers = async(req,res) => {
-   const  Users = await User.find({role : "user"  }).select('Username Email role ');
+
+
+    const page = parseInt(req.query.page) || 1;       // Default to page 1
+    const limit = parseInt(req.query.limit) || 10;    // Default to 10 items per page
+    const skip = (page - 1) * limit;
+
+
+   const  Users = await User.find({role : "user"  }).select('Username Email role ').skip(skip).limit(limit);
     
     
     return res.status(200).json({
@@ -101,3 +113,5 @@ exports.ViewUsers = async(req,res) => {
     
     }
     
+
+

@@ -5,15 +5,17 @@ const WishList = require('../models/Wishlist');
 
 exports.GetProductinWishList = async (req,res)=>{
 try{
+  const page = parseInt(req.query.page) || 1;       // Default to page 1
+  const limit = parseInt(req.query.limit) || 10;    // Default to 10 items per page
+  const skip = (page - 1) * limit;
 
     const userid = req.user._id
     const wishlist = await  WishList.findOne({"user_id" : userid  });
     if (!wishlist) {
         return res.status(404).json({ message: 'your Wishlist is empty' });
       }
-      
-    const products =  await wishlist.populate("product_id" );
-
+console.log(wishlist)      
+    const products =  await wishlist.populate("product_id" )
 return res.status(200).json({
 "message" : "success" ,
 "Data" : products
@@ -112,6 +114,33 @@ res.status(404).json({
       };
     
     
+
+      
+      exports.ClearWishList = async (req, res) => {
+        try {
+            const userid = req.user._id
+            const wishlist = await WishList.findOne({"user_id" : userid  });
+  
+
+      if (!wishlist) {
+        return res.status(404).json({ message: "Wishlist not found" });
+      }
+
+      wishlist.product_id = []; // Clear all products
+      await wishlist.save();        
+
+          return res.status(200).json({
+            message: "success"
+          });
+      
+        } catch (err) {
+          return res.status(500).json({ error: err.message });
+        }
+      };
+    
+    
+
+      
     
 
 

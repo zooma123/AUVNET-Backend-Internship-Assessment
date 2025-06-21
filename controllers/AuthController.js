@@ -4,14 +4,14 @@ const jwt = require ("jsonwebtoken")
 const { promisify } = require('util');
 
 
-const signToken = (userId) => {
-    return jwt.sign({ id: userId }, process.env.TOKEN_PASS, {
+const signToken = (userId , role) => {
+    return jwt.sign({ id: userId , role }, process.env.TOKEN_PASS, {
       expiresIn: "90d",
     });
   };
 
   const createSendToken = (user , statusCode , res)=>{
-    const token = signToken(user._id)
+    const token = signToken(user._id, user.role)
     res.cookie('jwt' , token, { //Name Of The Cookie And Content
     expires : new Date(Date.now() + process.env.CookieExpire * 24 * 60 *60 * 1000), // Send Cookie to Client
     httpOnly : true // prevent Prowser From any Modification
@@ -24,7 +24,8 @@ exports.register =  async (req,res) =>{
   
     const {Username,Email,password,role} = await  req.body
   
-  const user =  await User.findOne({Email});
+  const user =  await User.findOne({Username});
+  
   
   if(user){
     return res.json({ status: 'error', error: 'User Already Exist' })
@@ -70,7 +71,7 @@ exports.register =  async (req,res) =>{
     return res.status(401).json({ status: 'error', error: 'Invalid username/password'})
     }
     
-    const token = signToken(user._id)
+    const token = signToken(user._id , user.role)
     
     let oldTokens = user.tokens || [];
     
@@ -155,5 +156,37 @@ exports.protect = async (req, res, next) => {
         
 
 
+    
+        exports.SignOut = async (req, res) => {
+          try{
+        
+            if (req.headers && req.headers.authorization) {
+              const token = req.headers.authorization.split(' ')[1];
+              if (!token) {
+                return res
+                  .status(401)
+                  .json({ success: false, message: 'Authorization fail!' });
+              }
+          
+              const tokens = req.user.tokens;
+          
+              const newTokens = tokens.filter(t => t.token !== token);
+          
+              await User.findByIdAndUpdate(req.user._id, { tokens: newTokens });
+              res.json({ success: true, message: 'Sign out successfully!' });
+          }}catch(err){
+        
+        res.status(400).json({
+        message : err.message
+        
+        })
+          
+        
+        
+        
+        
+          }
+          }
+        
         
        

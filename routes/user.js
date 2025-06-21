@@ -6,7 +6,7 @@ const {deleteUsersAndAdmins , ViewAdmins ,ViewUsers , updateAdmin , createAdmin 
 
 
 router.get('/Admins' , protect,restrictTo("admin"),ViewAdmins) 
-router.get('/Users' , protect ,restrictTo("admin") , ViewUsers) 
+router.get('/Users' , ViewUsers) 
 router.post('/AddAdmin' , protect ,restrictTo("admin") , createAdmin) 
 router.put('/UpdateAdmin/:id' , protect ,restrictTo("admin") , updateAdmin) 
 router.delete('/DeleteUsersandAdmins/:id' , protect, restrictTo('admin') ,  deleteUsersAndAdmins);

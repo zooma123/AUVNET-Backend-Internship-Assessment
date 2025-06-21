@@ -3,7 +3,14 @@ const SubSubCategory = require('../models/Sub_Sub_Category');
 const SubCategory = require('../models/SubCategory')
 exports.GetAllSubCategories = async (req,res)=>{
 try{
- const SubCategories = await SubCategory.find().populate('category_id' , 'Name').select('Name');
+
+  const page = parseInt(req.query.page) || 1;       // Default to page 1
+  const limit = parseInt(req.query.limit) || 10;    // Default to 10 items per page
+  const skip = (page - 1) * limit;
+
+
+ const SubCategories = await SubCategory.find().
+ populate('category_id' , 'Name').select('Name').skip(skip).limit(limit);
 return res.status(200).json({
 "message" : "success" ,
 "Data" : SubCategories
@@ -87,7 +94,7 @@ exports.UpdateSubCategory = async (req,res) => {
 try {
     const updatedSubCategory = await SubCategory.findByIdAndUpdate(
         req.params.id,
-        { Name: req.body.Name }, {
+        { category_id : req.body.category_id, Name: req.body.Name }, {
           new: true,           
           runValidators: true   
         }

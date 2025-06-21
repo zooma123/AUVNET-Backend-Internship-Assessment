@@ -4,7 +4,11 @@ const SubSubCategory = require('../models/Sub_Sub_Category');
 
 exports.GetAllCategories = async (req,res)=>{
 try{
- const Categories = await Category.find();
+    const page = parseInt(req.query.page) || 1;       // Default to page 1
+    const limit = parseInt(req.query.limit) || 10;    // Default to 10 items per page
+    const skip = (page - 1) * limit;
+
+ const Categories = await Category.find().skip(skip).limit(limit);
 return res.status(200).json({
 "message" : "success" ,
 "Data" : Categories
