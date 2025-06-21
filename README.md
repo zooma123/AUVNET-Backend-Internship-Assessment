@@ -45,7 +45,7 @@ nodemon
 ### 💻 Frontend
 ```bash
 # Go to the frontend folder
-cd frontend
+cd frontend , cd e-comm
 # Install dependencies
 npm install
 # Start React app
