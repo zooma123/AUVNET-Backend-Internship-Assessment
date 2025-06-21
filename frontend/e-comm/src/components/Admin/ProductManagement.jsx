@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { Plus, Edit, Trash2, Package, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
 import './ProductManagement.css';
 
 const ProductManagement = () => {
@@ -9,6 +9,13 @@ const ProductManagement = () => {
   const [subSubCategories, setSubSubCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  
   const [productForm, setProductForm] = useState({
     name: '',
     price: '',
@@ -21,17 +28,20 @@ const ProductManagement = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
   const fetchData = async () => {
+    setLoading(true);
     try {
       const [productsRes, subSubCategoriesRes] = await Promise.all([
-        axios.get('http://localhost:3000/product/AllProducts'),
+        axios.get(`http://localhost:3000/product/AllProducts?page=${currentPage}&limit=${itemsPerPage}`),
         axios.get('http://localhost:3000/subsubcategory/AllSubSubCategories')
       ]);
 
       if (productsRes.data.message === 'success') {
         setProducts(productsRes.data.Data);
+        setTotalProducts(productsRes.data.totalCount || 0);
+        setTotalPages(Math.ceil((productsRes.data.totalCount || 0) / itemsPerPage));
       }
       if (subSubCategoriesRes.data.message === 'success') {
         setSubSubCategories(subSubCategoriesRes.data.Data);
@@ -59,7 +69,6 @@ const ProductManagement = () => {
 
     try {
       if (productForm.id) {
-        // For update, use FormData to support image upload
         await axios.put(`http://localhost:3000/product/UpdateProduct/${productForm.id}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -96,7 +105,14 @@ const ProductManagement = () => {
       try {
         await axios.delete(`http://localhost:3000/product/DeleteProduct/${id}`);
         toast.success('Product deleted successfully');
-        fetchData();
+        
+        // Check if we need to go to previous page after deletion
+        const remainingItems = products.length - 1;
+        if (remainingItems === 0 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        } else {
+          fetchData();
+        }
       } catch (error) {
         toast.error('Failed to delete product');
       }
@@ -106,6 +122,107 @@ const ProductManagement = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setProductForm({...productForm, image: file});
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const handleItemsPerPageChange = (e) => {
+    const newItemsPerPage = parseInt(e.target.value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
+
+  const renderPaginationButtons = () => {
+    const buttons = [];
+    const maxVisiblePages = 5;
+    
+    // Calculate start and end page numbers
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    // Adjust start page if we're near the end
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    // Previous button
+    buttons.push(
+      <button
+        key="prev"
+        className={`pagination-btn ${currentPage === 1 ? 'disabled' : ''}`}
+        onClick={() => handlePageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+      >
+        <ChevronLeft size={16} />
+      </button>
+    );
+
+    // First page and ellipsis
+    if (startPage > 1) {
+      buttons.push(
+        <button
+          key={1}
+          className={`pagination-btn ${currentPage === 1 ? 'active' : ''}`}
+          onClick={() => handlePageChange(1)}
+        >
+          1
+        </button>
+      );
+      if (startPage > 2) {
+        buttons.push(
+          <span key="start-ellipsis" className="pagination-ellipsis">...</span>
+        );
+      }
+    }
+
+    // Page numbers
+    for (let i = startPage; i <= endPage; i++) {
+      buttons.push(
+        <button
+          key={i}
+          className={`pagination-btn ${currentPage === i ? 'active' : ''}`}
+          onClick={() => handlePageChange(i)}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    // Last page and ellipsis
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        buttons.push(
+          <span key="end-ellipsis" className="pagination-ellipsis">...</span>
+        );
+      }
+      buttons.push(
+        <button
+          key={totalPages}
+          className={`pagination-btn ${currentPage === totalPages ? 'active' : ''}`}
+          onClick={() => handlePageChange(totalPages)}
+        >
+          {totalPages}
+        </button>
+      );
+    }
+
+    // Next button
+    buttons.push(
+      <button
+        key="next"
+        className={`pagination-btn ${currentPage === totalPages ? 'disabled' : ''}`}
+        onClick={() => handlePageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+      >
+        <ChevronRight size={16} />
+      </button>
+    );
+
+    return buttons;
   };
 
   if (loading) {
@@ -129,25 +246,41 @@ const ProductManagement = () => {
         </div>
 
         <div className="content-header">
-          <h2>Products ({products.length})</h2>
-          <button 
-            className="add-btn"
-            onClick={() => {
-              setProductForm({
-                name: '',
-                price: '',
-                quantity: '',
-                SubSubCategoryName: '',
-                description: '',
-                image: null,
-                id: null
-              });
-              setShowModal(true);
-            }}
-          >
-            <Plus className="btn-icon" />
-            Add Product
-          </button>
+          <h2>Products ({totalProducts})</h2>
+          <div className="header-actions">
+            <div className="items-per-page">
+              <label htmlFor="itemsPerPage">Items per page:</label>
+              <select
+                id="itemsPerPage"
+                value={itemsPerPage}
+                onChange={handleItemsPerPageChange}
+                className="items-per-page-select"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+            <button 
+              className="add-btn"
+              onClick={() => {
+                setProductForm({
+                  name: '',
+                  price: '',
+                  quantity: '',
+                  SubSubCategoryName: '',
+                  description: '',
+                  image: null,
+                  id: null
+                });
+                setShowModal(true);
+              }}
+            >
+              <Plus className="btn-icon" />
+              Add Product
+            </button>
+          </div>
         </div>
 
         <div className="products-grid">
@@ -215,6 +348,19 @@ const ProductManagement = () => {
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="pagination-container">
+            <div className="pagination-info">
+              Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalProducts)} to{' '}
+              {Math.min(currentPage * itemsPerPage, totalProducts)} of {totalProducts} products
+            </div>
+            <div className="pagination">
+              {renderPaginationButtons()}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Product Modal */}

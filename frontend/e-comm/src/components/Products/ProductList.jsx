@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { Heart, ShoppingBag, Search, Filter } from 'lucide-react';
+import { Heart, ShoppingBag, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import './ProductList.css';
 
 const ProductList = () => {
@@ -12,21 +11,26 @@ const ProductList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit] = useState(6); // Items per page
 
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-  }, []);
+  }, [page]);
 
   useEffect(() => {
     filterProducts();
   }, [products, searchTerm, selectedCategory]);
 
   const fetchProducts = async () => {
+    setLoading(true);
     try {
-      const response = await axios.get('http://localhost:3000/product/AllProducts');
+      const response = await axios.get(`http://localhost:3000/product/AllProducts?page=${page}&limit=${limit}`);
       if (response.data.message === 'success') {
         setProducts(response.data.Data);
+        setTotalPages(response.data.totalPages);
       }
     } catch (error) {
       toast.error('Failed to fetch products');
@@ -83,6 +87,14 @@ const ProductList = () => {
     }
   };
 
+  const handlePageChange = (direction) => {
+    if (direction === 'prev' && page > 1) {
+      setPage(prev => prev - 1);
+    } else if (direction === 'next' && page < totalPages) {
+      setPage(prev => prev + 1);
+    }
+  };
+
   if (loading) {
     return (
       <div className="products-loading">
@@ -100,6 +112,7 @@ const ProductList = () => {
           <p>Discover amazing products at great prices</p>
         </div>
 
+        {/* Filters */}
         <div className="products-filters">
           <div className="search-box">
             <Search className="search-icon" />
@@ -111,8 +124,10 @@ const ProductList = () => {
             />
           </div>
 
+        
         </div>
 
+        {/* Products Grid */}
         <div className="products-grid">
           {filteredProducts.length === 0 ? (
             <div className="no-products">
@@ -149,12 +164,28 @@ const ProductList = () => {
                   </p>
                   <div className="product-footer">
                     <div className="product-price">${product.price}</div>
-          
                   </div>
                 </div>
               </div>
             ))
           )}
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="pagination-controls">
+          <button
+            onClick={() => handlePageChange('prev')}
+            disabled={page === 1}
+          >
+            <ChevronLeft size={20} /> Previous
+          </button>
+          <span>Page {page} of {totalPages}</span>
+          <button
+            onClick={() => handlePageChange('next')}
+            disabled={page === totalPages}
+          >
+            Next <ChevronRight size={20} />
+          </button>
         </div>
       </div>
     </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -12,43 +11,42 @@ const Home = () => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  
+
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedSubCategory, setSelectedSubCategory] = useState('');
   const [selectedSubSubCategory, setSelectedSubSubCategory] = useState('');
 
+  // Pagination states
+  const [page, setPage] = useState(1);
+  const [limit] = useState(6); // products per page
+  const [totalPages, setTotalPages] = useState(1);
+
   useEffect(() => {
-    fetchInitialData();
-  }, []);
+    fetchInitialData(page);
+  }, [page]);
 
   useEffect(() => {
     filterProducts();
   }, [selectedCategory, selectedSubCategory, selectedSubSubCategory, products]);
 
-  const fetchInitialData = async () => {
+  const fetchInitialData = async (pageNum = 1) => {
     setLoading(true);
     try {
       const [categoriesRes, subCategoriesRes, subSubCategoriesRes, productsRes] = await Promise.all([
-     
         axios.get('http://localhost:3000/category/AllCategories'),
         axios.get('http://localhost:3000/subcategory/AllSubCategories'),
         axios.get('http://localhost:3000/subsubcategory/AllSubSubCategories'),
-        axios.get('http://localhost:3000/product/AllProducts')
+        axios.get(`http://localhost:3000/product/AllProducts?page=${pageNum}&limit=${limit}`)
       ]);
 
-      if (categoriesRes.data.message === 'success') {
-        setCategories(categoriesRes.data.Data);
-      }
-      if (subCategoriesRes.data.message === 'success') {
-        setSubCategories(subCategoriesRes.data.Data);
-      }
-      if (subSubCategoriesRes.data.message === 'success') {
-        setSubSubCategories(subSubCategoriesRes.data.Data);
-      }
+      if (categoriesRes.data.message === 'success') setCategories(categoriesRes.data.Data);
+      if (subCategoriesRes.data.message === 'success') setSubCategories(subCategoriesRes.data.Data);
+      if (subSubCategoriesRes.data.message === 'success') setSubSubCategories(subSubCategoriesRes.data.Data);
       if (productsRes.data.message === 'success') {
         setProducts(productsRes.data.Data);
-        // Don't set filteredProducts by default - only show when user makes selections
+        setPage(productsRes.data.currentPage);
+        setTotalPages(productsRes.data.totalPages);
       }
     } catch (error) {
       toast.error('Failed to fetch data');
@@ -58,7 +56,6 @@ const Home = () => {
   };
 
   const filterProducts = () => {
-    // Only show products if at least one selection is made
     if (!selectedCategory && !selectedSubCategory && !selectedSubSubCategory) {
       setFilteredProducts([]);
       return;
@@ -67,27 +64,27 @@ const Home = () => {
     let filtered = products;
 
     if (selectedSubSubCategory) {
-      filtered = products.filter(product => 
+      filtered = products.filter(product =>
         product.subSubCategory_id._id === selectedSubSubCategory
       );
     } else if (selectedSubCategory) {
-      const relevantSubSubCategories = subSubCategories.filter(subSub => 
+      const relevantSubSubCategories = subSubCategories.filter(subSub =>
         subSub.subCategory_id._id === selectedSubCategory
       );
       const subSubCategoryIds = relevantSubSubCategories.map(subSub => subSub._id);
-      filtered = products.filter(product => 
+      filtered = products.filter(product =>
         subSubCategoryIds.includes(product.subSubCategory_id._id)
       );
     } else if (selectedCategory) {
-      const relevantSubCategories = subCategories.filter(sub => 
+      const relevantSubCategories = subCategories.filter(sub =>
         sub.category_id._id === selectedCategory
       );
       const subCategoryIds = relevantSubCategories.map(sub => sub._id);
-      const relevantSubSubCategories = subSubCategories.filter(subSub => 
+      const relevantSubSubCategories = subSubCategories.filter(subSub =>
         subCategoryIds.includes(subSub.subCategory_id._id)
       );
       const subSubCategoryIds = relevantSubSubCategories.map(subSub => subSub._id);
-      filtered = products.filter(product => 
+      filtered = products.filter(product =>
         subSubCategoryIds.includes(product.subSubCategory_id._id)
       );
     }
@@ -114,14 +111,12 @@ const Home = () => {
     setSelectedCategory('');
     setSelectedSubCategory('');
     setSelectedSubSubCategory('');
+    setPage(1);
   };
 
   const addToWishlist = async (productId) => {
     try {
-      const response = await axios.post('http://localhost:3000/wishlist/addToWishList', {
-        productId: productId
-      });
-
+      const response = await axios.post('http://localhost:3000/wishlist/addToWishList', { productId });
       if (response.data.message === 'success') {
         toast.success('Product added to wishlist!');
       }
@@ -146,9 +141,9 @@ const Home = () => {
 
   const getProductsDisplayMessage = () => {
     if (!selectedCategory && !selectedSubCategory && !selectedSubSubCategory) {
-      return "Browse Categories to View Products";
+      return `All Products (Page ${page})`;
     }
-    
+
     if (selectedSubSubCategory) {
       const subSubCat = getFilteredSubSubCategories().find(s => s._id === selectedSubSubCategory);
       return `Products in ${subSubCat?.Name} (${filteredProducts.length})`;
@@ -160,6 +155,10 @@ const Home = () => {
       return `Products in ${cat?.Name} (${filteredProducts.length})`;
     }
   };
+
+  const productsToDisplay = (selectedCategory || selectedSubCategory || selectedSubSubCategory)
+    ? filteredProducts
+    : products;
 
   if (loading) {
     return (
@@ -193,10 +192,7 @@ const Home = () => {
           <div className="dropdown-group">
             <label>Category</label>
             <div className="custom-select">
-              <select
-                value={selectedCategory}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-              >
+              <select value={selectedCategory} onChange={(e) => handleCategoryChange(e.target.value)}>
                 <option value="">Select a Category</option>
                 {categories.map((category) => (
                   <option key={category._id} value={category._id}>
@@ -254,58 +250,57 @@ const Home = () => {
           <h2>{getProductsDisplayMessage()}</h2>
         </div>
 
-        {!selectedCategory && !selectedSubCategory && !selectedSubSubCategory ? (
-          <div className="no-products">
-            <Filter className="no-products-icon" />
-            <h3>Select Categories to View Products</h3>
-            <p>Use the dropdown menus above to browse our product catalog by category, subcategory, and sub-subcategory.</p>
-          </div>
-        ) : filteredProducts.length === 0 ? (
+        {productsToDisplay.length === 0 ? (
           <div className="no-products">
             <ShoppingBag className="no-products-icon" />
             <h3>No products found</h3>
             <p>Try selecting different categories or check back later for new products.</p>
           </div>
         ) : (
-          <div className="products-grid">
-            {filteredProducts.map((product) => (
-              <div key={product._id} className="product-card">
-                <div className="product-image">
-                  <img
-                    src={product.image || '/placeholder-image.jpg'}
-                    alt={product.name}
-                    onError={(e) => {
-                      e.target.src = '/placeholder-image.jpg';
-                    }}
-                  />
-                  <button
-                    className="wishlist-btn"
-                    onClick={() => addToWishlist(product._id)}
-                  >
-                    <Heart className="heart-icon" />
-                  </button>
-                </div>
-
-                <div className="product-info">
-                  <h3 className="product-name">{product.name}</h3>
-                  <p className="product-description">
-                    {product.description || 'No description available'}
-                  </p>
-                  <div className="product-category">
-                    <span className="category-badge">
-                      {product.subSubCategory_id?.Name}
-                    </span>
+          <>
+            <div className="products-grid">
+              {productsToDisplay.map((product) => (
+                <div key={product._id} className="product-card">
+                  <div className="product-image">
+                    <img
+                      src={product.image || '/placeholder-image.jpg'}
+                      alt={product.name}
+                      onError={(e) => {
+                        e.target.src = '/placeholder-image.jpg';
+                      }}
+                    />
+                    <button className="wishlist-btn" onClick={() => addToWishlist(product._id)}>
+                      <Heart className="heart-icon" />
+                    </button>
                   </div>
-                  <div className="product-footer">
-                    <div className="product-price">${product.price}</div>
-                    <div className="product-quantity">
-                      Stock: {product.quantity}
+
+                  <div className="product-info">
+                    <h3 className="product-name">{product.name}</h3>
+                    <p className="product-description">{product.description || 'No description available'}</p>
+                    <div className="product-category">
+                      <span className="category-badge">{product.subSubCategory_id?.Name}</span>
+                    </div>
+                    <div className="product-footer">
+                      <div className="product-price">${product.price}</div>
                     </div>
                   </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {(!selectedCategory && totalPages > 1) && (
+              <div className="pagination-controls">
+                <button onClick={() => setPage((prev) => Math.max(prev - 1, 1))} disabled={page === 1}>
+                  Previous
+                </button>
+                <span>Page {page} of {totalPages}</span>
+                <button onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))} disabled={page === totalPages}>
+                  Next
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>

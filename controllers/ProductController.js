@@ -5,27 +5,35 @@ const Product = require('../models/Product.js')
 const {cloudinary} = require('../utils/cloudinary.js')
 
 
-exports.GetAllProducts = async (req,res)=>{
-try{
-
-    const page = parseInt(req.query.page) || 1;       // Default to page 1
-    const limit = parseInt(req.query.limit) || 10;    // Default to 10 items per page
+exports.GetAllProducts = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;    
+    const limit = parseInt(req.query.limit) || 10;    
     const skip = (page - 1) * limit;
 
+    // Get total count for pagination
+    const totalCount = await Product.countDocuments();
 
- const Products = await Product.find().populate('subSubCategory_id' , 'Name').skip(skip).limit(limit);
-return res.status(200).json({
-"message" : "success" ,
-"Data" : Products
+    // Get paginated products
+    const Products = await Product.find()
+      .populate('subSubCategory_id', 'Name')
+      .skip(skip)
+      .limit(limit);
 
-})}catch(err){
-
-res.status(404).json({
-"error" : err.message
-
-})
-}
-}
+    return res.status(200).json({
+      "message": "success",
+      "Data": Products,
+      "totalCount": totalCount,
+      "currentPage": page,
+      "totalPages": Math.ceil(totalCount / limit),
+      "itemsPerPage": limit
+    });
+  } catch (err) {
+    res.status(404).json({
+      "error": err.message
+    });
+  }
+};
 
 
 
