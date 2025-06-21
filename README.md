@@ -29,6 +29,7 @@ Welcome to **Auvne**, a full-stack **E-Commerce web application** built with:
 Here's the full ER Diagram for the project:
 
 ![ER Diagram](./Er%20DIAGRAM%20FOR%20AUVNE.JPG)
+hint : if We Use SQL DATABASE We Should make Linking Table Between Products and wishlist Containing their Keys  Because Of they have Relation Many To Many 
 
 ---
 
@@ -59,7 +60,7 @@ npm start
 ```
 📦project-root
  ┣ 📂frontend         # React app
- ┣ 📂backend          # Express + MongoDB
+ ┣  backend          # Express + MongoDB
  ┣ 📜README.md
  ┗ 🖼️ ER DIAGRAM FOR AUVNE.JPG
 ```
