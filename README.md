@@ -28,7 +28,7 @@ Welcome to **Auvne**, a full-stack **E-Commerce web application** built with:
 
 Here's the full ER Diagram for the project:
 
-![ER Diagram](./Er%20DIAGRAM%20FOR%20AUVNE.JPG)
+![ER Diagram](./Er%20Digram.JPG)
 hint : if We Use SQL DATABASE We Should make Linking Table Between Products and wishlist Containing their Keys  Because Of they have Relation Many To Many 
 
 ---
